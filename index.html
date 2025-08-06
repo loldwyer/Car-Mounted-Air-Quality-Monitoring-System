@@ -8,27 +8,55 @@
 </head>
 <body>
   <header>
-    <h1>🚗 Urban Air Quality Monitor</h1>
+    <h1> Car Portable Urban Air Quality Monitor</h1>
     <p>Live CO₂, PM2.5, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
   </header>
 
-  <section>
-    <h2>📡 Live ThingSpeak Feed</h2>
-    <iframe 
-      width="100%" height="350" 
-      src="https://thingspeak.com/channels/2960675/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true"
-      frameborder="0">
-    </iframe>
-  </section>
+<section>
+  <h2>Live Sensor Dashboard</h2>
+
+  <div class="tabs">
+    <button class="tablink" onclick="showTab('co2')">CO₂</button>
+    <button class="tablink" onclick="showTab('pm25')">PM2.5</button>
+    <button class="tablink" onclick="showTab('pm10')">PM10</button>
+    <button class="tablink" onclick="showTab('pm1')">PM1.0</button>
+    <button class="tablink" onclick="showTab('temp')">Temp</button>
+    <button class="tablink" onclick="showTab('rh')">Humidity</button>
+    <button class="tablink" onclick="showTab('no2')">NO₂</button>
+  </div>
+
+  <div id="co2" class="tabcontent">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/4?bgcolor=%23ffffff&color=%23ffa500&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="pm25" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/2?bgcolor=%23ffffff&color=%2300cc00&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="pm10" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/3?bgcolor=%23ffffff&color=%230000ff&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="pm1" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/1?bgcolor=%23ffffff&color=%23ff0000&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="temp" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/5?bgcolor=%23ffffff&color=%233399ff&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="rh" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/6?bgcolor=%23ffffff&color=%23009966&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+  <div id="no2" class="tabcontent" style="display:none;">
+    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/7?bgcolor=%23ffffff&color=%236600cc&dynamic=true&results=60" frameborder="0"></iframe>
+  </div>
+</section>
+
 
   <section>
-    <h2>📊 Blynk Dashboard</h2>
+    <h2>Blynk Dashboard</h2>
     <img src="images/blynk-dashboard.png" alt="Blynk dashboard screenshot" style="max-width:100%; border:1px solid #ccc;" />
     <p>Shows real-time CO₂, PM levels, NO₂ voltage, and alert LEDs</p>
   </section>
 
   <section>
-    <h2>🔧 Hardware Overview</h2>
+    <h2>Hardware Overview</h2>
     <img src="images/system-diagram.png" alt="System Schematic" style="max-width:100%;" />
     <ul>
       <li>ESP32</li>
@@ -41,12 +69,32 @@
   </section>
 
   <section>
-    <h2>📁 Sample Sensor Logs</h2>
+    <h2>Sample Sensor Logs</h2>
     <a href="data/latest.csv" download>Download CSV (log)</a>
   </section>
 
   <footer>
     <p>&copy; 2025 Lauren Dwyer | MEng ECE</p>
   </footer>
+
+  <script>
+  function showTab(id) {
+    const contents = document.querySelectorAll('.tabcontent');
+    contents.forEach(el => el.style.display = 'none');
+
+    document.getElementById(id).style.display = 'block';
+
+    const buttons = document.querySelectorAll('.tablink');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    event.target.classList.add('active');
+  }
+
+  // Default tab
+  document.addEventListener("DOMContentLoaded", () => {
+    showTab('co2');
+  });
+</script>
+
 </body>
 </html>
