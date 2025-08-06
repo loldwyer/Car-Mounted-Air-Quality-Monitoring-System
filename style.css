@@ -19,3 +19,27 @@ section {
 h1, h2 {
   color: #0a58ca;
 }
+
+.tabs {
+  margin-bottom: 1rem;
+}
+
+.tablink {
+  background-color: #ddd;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 2px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tablink:hover,
+.tablink.active {
+  background-color: #0a58ca;
+  color: white;
+}
+
+.tabcontent {
+  display: none;
+}
+
