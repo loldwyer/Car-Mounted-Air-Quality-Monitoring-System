@@ -5,72 +5,73 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Car-Mounted Air Quality Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
+
   <header>
-    <h1> Car Portable Urban Air Quality Monitor</h1>
+    <h1>Car Portable Urban Air Quality Monitor</h1>
     <p>Live CO₂, PM2.5, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
   </header>
 
   <section>
-  <h2>📊 Live Sensor Dashboard (Tabbed)</h2>
+    <h2>📊 Live Sensor Dashboard (Tabbed)</h2>
 
-  <div class="tabs">
-    <button class="tablink" onclick="showTab('co2')">CO₂</button>
-    <button class="tablink" onclick="showTab('pm25')">PM2.5</button>
-    <button class="tablink" onclick="showTab('pm10')">PM10</button>
-    <button class="tablink" onclick="showTab('pm1')">PM1.0</button>
-    <button class="tablink" onclick="showTab('temp')">Temp</button>
-    <button class="tablink" onclick="showTab('rh')">Humidity</button>
-    <button class="tablink" onclick="showTab('no2')">NO₂</button>
-  </div>
+    <div class="tabs">
+      <button class="tablink" onclick="showTab('co2')">CO₂</button>
+      <button class="tablink" onclick="showTab('pm25')">PM2.5</button>
+      <button class="tablink" onclick="showTab('pm10')">PM10</button>
+      <button class="tablink" onclick="showTab('pm1')">PM1.0</button>
+      <button class="tablink" onclick="showTab('temp')">Temp</button>
+      <button class="tablink" onclick="showTab('rh')">Humidity</button>
+      <button class="tablink" onclick="showTab('no2')">NO₂</button>
+    </div>
 
-  <div id="co2" class="tabcontent">
-    <p><strong>Latest CO₂:</strong> <span id="co2val">Loading...</span> ppm</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/4?bgcolor=%23ffffff&color=%23ffa500&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="co2" class="tabcontent">
+      <p><strong>Latest CO₂:</strong> <span id="co2val">Loading...</span> ppm</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/4?bgcolor=%23ffffff&color=%23ffa500&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="pm25" class="tabcontent" style="display:none;">
-    <p><strong>Latest PM2.5:</strong> <span id="pm25val">Loading...</span> µg/m³</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/2?bgcolor=%23ffffff&color=%2300cc00&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="pm25" class="tabcontent">
+      <p><strong>Latest PM2.5:</strong> <span id="pm25val">Loading...</span> µg/m³</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/2?bgcolor=%23ffffff&color=%2300cc00&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="pm10" class="tabcontent" style="display:none;">
-    <p><strong>Latest PM10:</strong> <span id="pm10val">Loading...</span> µg/m³</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/3?bgcolor=%23ffffff&color=%230000ff&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="pm10" class="tabcontent">
+      <p><strong>Latest PM10:</strong> <span id="pm10val">Loading...</span> µg/m³</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/3?bgcolor=%23ffffff&color=%230000ff&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="pm1" class="tabcontent" style="display:none;">
-    <p><strong>Latest PM1.0:</strong> <span id="pm1val">Loading...</span> µg/m³</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/1?bgcolor=%23ffffff&color=%23ff0000&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="pm1" class="tabcontent">
+      <p><strong>Latest PM1.0:</strong> <span id="pm1val">Loading...</span> µg/m³</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/1?bgcolor=%23ffffff&color=%23ff0000&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="temp" class="tabcontent" style="display:none;">
-    <p><strong>Latest Temp:</strong> <span id="tempval">Loading...</span> °C</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/5?bgcolor=%23ffffff&color=%233399ff&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="temp" class="tabcontent">
+      <p><strong>Latest Temp:</strong> <span id="tempval">Loading...</span> °C</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/5?bgcolor=%23ffffff&color=%233399ff&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="rh" class="tabcontent" style="display:none;">
-    <p><strong>Latest Humidity:</strong> <span id="humval">Loading...</span> %</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/6?bgcolor=%23ffffff&color=%23009966&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
+    <div id="rh" class="tabcontent">
+      <p><strong>Latest Humidity:</strong> <span id="humval">Loading...</span> %</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/6?bgcolor=%23ffffff&color=%23009966&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
 
-  <div id="no2" class="tabcontent" style="display:none;">
-    <p><strong>Latest NO₂ Voltage:</strong> <span id="no2val">Loading...</span> V</p>
-    <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/7?bgcolor=%23ffffff&color=%236600cc&dynamic=true&results=60" frameborder="0"></iframe>
-  </div>
-</section>
-
+    <div id="no2" class="tabcontent">
+      <p><strong>Latest NO₂ Voltage:</strong> <span id="no2val">Loading...</span> V</p>
+      <iframe width="100%" height="350" src="https://thingspeak.com/channels/2960675/charts/7?bgcolor=%23ffffff&color=%236600cc&dynamic=true&results=60" frameborder="0"></iframe>
+    </div>
+  </section>
 
   <section>
     <h2>Blynk Dashboard</h2>
-    <img src="images/blynk-dashboard.png" alt="Blynk dashboard screenshot" style="max-width:100%; border:1px solid #ccc;" />
+    <img src="images/blynk-dashboard.png" alt="Blynk dashboard screenshot" />
     <p>Shows real-time CO₂, PM levels, NO₂ voltage, and alert LEDs</p>
   </section>
 
   <section>
     <h2>Hardware Overview</h2>
-    <img src="images/system-diagram.png" alt="System Schematic" style="max-width:100%;" />
+    <img src="images/system-diagram.png" alt="System Schematic" />
     <ul>
       <li>ESP32</li>
       <li>SCD30 (CO₂)</li>
@@ -90,41 +91,46 @@
     <p>&copy; 2025 Lauren Dwyer | MEng ECE</p>
   </footer>
 
- <script>
-  async function fetchThingSpeakData() {
-    try {
-      const response = await fetch('https://api.thingspeak.com/channels/2960675/feeds.json?results=1');
-      const data = await response.json();
+  <script>
+    function showTab(id) {
+      const contents = document.querySelectorAll('.tabcontent');
+      contents.forEach(el => el.style.display = 'none');
 
-      if (data && data.feeds && data.feeds.length > 0) {
-        const feed = data.feeds[0];
+      document.getElementById(id).style.display = 'block';
 
-        // Log to console for debug
-        console.log("Latest feed:", feed);
+      const buttons = document.querySelectorAll('.tablink');
+      buttons.forEach(btn => btn.classList.remove('active'));
 
-        document.getElementById('co2val').textContent = parseFloat(feed.field4).toFixed(1);
-        document.getElementById('pm25val').textContent = parseFloat(feed.field2).toFixed(1);
-        document.getElementById('pm10val').textContent = parseFloat(feed.field3).toFixed(1);
-        document.getElementById('pm1val').textContent = parseFloat(feed.field1).toFixed(1);
-        document.getElementById('tempval').textContent = parseFloat(feed.field5).toFixed(1);
-        document.getElementById('humval').textContent = parseFloat(feed.field6).toFixed(1);
-        document.getElementById('no2val').textContent = parseFloat(feed.field7).toFixed(3);
-      } else {
-        console.error("No feeds found.");
-      }
-    } catch (err) {
-      console.error("ThingSpeak fetch error:", err);
+      event.target.classList.add('active');
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    showTab('co2');               // Show CO2 tab by default
-    fetchThingSpeakData();        // Fetch once
-    setInterval(fetchThingSpeakData, 30000); // Fetch every 30 sec
-  });
-</script>
+    async function fetchThingSpeakData() {
+      try {
+        const response = await fetch('https://api.thingspeak.com/channels/2960675/feeds.json?results=1');
+        const data = await response.json();
 
+        if (data && data.feeds && data.feeds.length > 0) {
+          const feed = data.feeds[0];
+          document.getElementById('co2val').textContent = parseFloat(feed.field4).toFixed(1);
+          document.getElementById('pm25val').textContent = parseFloat(feed.field2).toFixed(1);
+          document.getElementById('pm10val').textContent = parseFloat(feed.field3).toFixed(1);
+          document.getElementById('pm1val').textContent = parseFloat(feed.field1).toFixed(1);
+          document.getElementById('tempval').textContent = parseFloat(feed.field5).toFixed(1);
+          document.getElementById('humval').textContent = parseFloat(feed.field6).toFixed(1);
+          document.getElementById('no2val').textContent = parseFloat(feed.field7).toFixed(3);
+        } else {
+          console.error("No feeds found.");
+        }
+      } catch (err) {
+        console.error("ThingSpeak fetch error:", err);
+      }
+    }
 
-
+    document.addEventListener("DOMContentLoaded", () => {
+      showTab('co2');
+      fetchThingSpeakData();
+      setInterval(fetchThingSpeakData, 30000);
+    });
+  </script>
 </body>
 </html>
