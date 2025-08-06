@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Car-Mounted Air Quality Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🚗 Urban Air Quality Monitor</h1>
+    <p>Live CO₂, PM2.5, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
+  </header>
+
+  <section>
+    <h2>📡 Live ThingSpeak Feed</h2>
+    <iframe 
+      width="100%" height="350" 
+      src="https://thingspeak.com/channels/2960675/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true"
+      frameborder="0">
+    </iframe>
+  </section>
+
+  <section>
+    <h2>📊 Blynk Dashboard</h2>
+    <img src="images/blynk-dashboard.png" alt="Blynk dashboard screenshot" style="max-width:100%; border:1px solid #ccc;" />
+    <p>Shows real-time CO₂, PM levels, NO₂ voltage, and alert LEDs</p>
+  </section>
+
+  <section>
+    <h2>🔧 Hardware Overview</h2>
+    <img src="images/system-diagram.png" alt="System Schematic" style="max-width:100%;" />
+    <ul>
+      <li>ESP32</li>
+      <li>SCD30 (CO₂)</li>
+      <li>SPS30 (PM)</li>
+      <li>MiCS-4514 (NO₂)</li>
+      <li>DS3231 RTC + SD Card</li>
+      <li>Blynk + ThingSpeak + OLED (optional)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📁 Sample Sensor Logs</h2>
+    <a href="data/latest.csv" download>Download CSV (log)</a>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Lauren Dwyer | MEng ECE</p>
+  </footer>
+</body>
+</html>
