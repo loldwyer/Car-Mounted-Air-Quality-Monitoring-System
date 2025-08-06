@@ -14,6 +14,7 @@
     <p>Live CO₂, PM2.5, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
   </header>
 
+  
   <section>
     <h2>📊 Live Sensor Dashboard (Tabbed)</h2>
 
@@ -92,17 +93,18 @@
   </footer>
 
   <script>
-    function showTab(id) {
-      const contents = document.querySelectorAll('.tabcontent');
-      contents.forEach(el => el.style.display = 'none');
+      function showTab(id) {
+    const contents = document.querySelectorAll('.tabcontent');
+    contents.forEach(el => el.style.display = 'none');
 
-      document.getElementById(id).style.display = 'block';
+    document.getElementById(id).style.display = 'block';
 
-      const buttons = document.querySelectorAll('.tablink');
-      buttons.forEach(btn => btn.classList.remove('active'));
+    const buttons = document.querySelectorAll('.tablink');
+    buttons.forEach(btn => btn.classList.remove('active'));
 
-      event.target.classList.add('active');
-    }
+    // get the clicked button via this keyword
+    const clickedButton = Array.from(buttons).find(btn => btn.textContent.toLowerCase().includes(id));
+    if (clickedButton) clickedButton.classList.add('active');
 
     async function fetchThingSpeakData() {
       try {
