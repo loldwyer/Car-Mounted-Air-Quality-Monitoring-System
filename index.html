@@ -90,44 +90,40 @@
     <p>&copy; 2025 Lauren Dwyer | MEng ECE</p>
   </footer>
 
-  <script>
-  function showTab(id) {
-    const contents = document.querySelectorAll('.tabcontent');
-    contents.forEach(el => el.style.display = 'none');
-
-    document.getElementById(id).style.display = 'block';
-
-    const buttons = document.querySelectorAll('.tablink');
-    buttons.forEach(btn => btn.classList.remove('active'));
-
-    event.target.classList.add('active');
-  }
-
+ <script>
   async function fetchThingSpeakData() {
     try {
       const response = await fetch('https://api.thingspeak.com/channels/2960675/feeds.json?results=1');
       const data = await response.json();
-      const feed = data.feeds[0];
 
-      document.getElementById('co2val').textContent = parseFloat(feed.field4).toFixed(1);
-      document.getElementById('pm25val').textContent = parseFloat(feed.field2).toFixed(1);
-      document.getElementById('pm10val').textContent = parseFloat(feed.field3).toFixed(1);
-      document.getElementById('pm1val').textContent = parseFloat(feed.field1).toFixed(1);
-      document.getElementById('tempval').textContent = parseFloat(feed.field5).toFixed(1);
-      document.getElementById('humval').textContent = parseFloat(feed.field6).toFixed(1);
-      document.getElementById('no2val').textContent = parseFloat(feed.field7).toFixed(3);
+      if (data && data.feeds && data.feeds.length > 0) {
+        const feed = data.feeds[0];
+
+        // Log to console for debug
+        console.log("Latest feed:", feed);
+
+        document.getElementById('co2val').textContent = parseFloat(feed.field4).toFixed(1);
+        document.getElementById('pm25val').textContent = parseFloat(feed.field2).toFixed(1);
+        document.getElementById('pm10val').textContent = parseFloat(feed.field3).toFixed(1);
+        document.getElementById('pm1val').textContent = parseFloat(feed.field1).toFixed(1);
+        document.getElementById('tempval').textContent = parseFloat(feed.field5).toFixed(1);
+        document.getElementById('humval').textContent = parseFloat(feed.field6).toFixed(1);
+        document.getElementById('no2val').textContent = parseFloat(feed.field7).toFixed(3);
+      } else {
+        console.error("No feeds found.");
+      }
     } catch (err) {
-      console.error("Failed to fetch ThingSpeak data:", err);
+      console.error("ThingSpeak fetch error:", err);
     }
   }
 
-  // Load values on page load and update every 30 seconds
   document.addEventListener("DOMContentLoaded", () => {
-    showTab('co2');
-    fetchThingSpeakData();
-    setInterval(fetchThingSpeakData, 30000);
+    showTab('co2');               // Show CO2 tab by default
+    fetchThingSpeakData();        // Fetch once
+    setInterval(fetchThingSpeakData, 30000); // Fetch every 30 sec
   });
 </script>
+
 
 
 </body>
