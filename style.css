@@ -71,7 +71,7 @@ p {
   flex: 1 1 30%;
   overflow: hidden;  /* removes internal scrollbars if iframe fits the content */
   min-width: 300px;
-  max-height: 420px; 
+  max-height: 400px; 
   padding: 1rem;
   background: white;
   border-radius: 8px;
