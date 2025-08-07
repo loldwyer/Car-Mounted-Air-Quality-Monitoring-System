@@ -7,13 +7,26 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <!-- Top Banner Navigation -->
+  <nav class="topnav">
+    <ul>
+      <li><a href="#sensor-overview" class="active">Sensor Overview</a></li>
+      <li><a href="#hardware">Hardware</a></li>
+      <li><a href="#enclosure">Enclosure & Mounting</a></li>
+      <li><a href="#deployment">Deployment</a></li>
+    </ul>
+  </nav>
+
+  <!-- Header -->
   <header>
     <h1>T1: Car Portable Urban Air Quality Monitor</h1>
     <p>Live CO₂, PM, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
   </header>
 
-  <section>
-    <h2>Live Sensor Dashboard</h2>
+  <!-- Sensor Section -->
+  <section id="sensor-overview">
+    <h2>Sensor Overview</h2>
 
     <label for="sensorSelect"><strong>View by Sensor:</strong></label>
     <select id="sensorSelect" onchange="handleSensorSelect(this.value)">
@@ -71,21 +84,50 @@
     </div>
   </section>
 
-  <section>
+  <!-- Hardware Section -->
+  <section id="hardware">
     <h2>Hardware Overview</h2>
-    <p>This system uses an ESP32 with the following sensors:</p>
+    <p>This system uses the following components:</p>
     <ul>
-      <li>SCD30: CO₂, Temperature, Humidity</li>
-      <li>SPS30: PM1.0, PM2.5, PM10</li>
-      <li>MiCS-4514: NO₂</li>
-      <li>DS3231 RTC for timestamps</li>
-      <li>SD card for local logging</li>
-      <li>Blynk + ThingSpeak for remote access</li>
+      <li><a href="#" target="_blank">ESP32-DEVKITC-VE</a></li>
+      <li><a href="#" target="_blank">SCD30: CO₂, Temperature, Humidity</a></li>
+      <li><a href="#" target="_blank">SPS30: PM1.0, PM2.5, PM10</a></li>
+      <li><a href="#" target="_blank">MiCS-4514: NO₂</a></li>
+      <li><a href="#" target="_blank">DS3231 RTC</a></li>
+      <li><a href="#" target="_blank">MicroSD Card Module</a></li>
+      <li><a href="#" target="_blank">OLED or LCD Display (optional)</a></li>
+      <li><a href="#" target="_blank">Li-Ion Battery Pack</a></li>
+    </ul>
+    <p>Wiring diagrams, schematic PDFs, and BOM available upon request.</p>
+  </section>
+
+  <!-- Enclosure Section -->
+  <section id="enclosure">
+    <h2>Enclosure & Mounting</h2>
+    <p>The sensor enclosure was custom designed to allow optimal airflow and protection from debris. It was mounted to a vehicle dashboard using industrial double-sided tape and vent-mounted clips.</p>
+    <ul>
+      <li>Material: 3D printed PLA</li>
+      <li>Design files: <a href="#">Download STL</a></li>
+      <li>Mounting method: Dashboard adhesive + cable management</li>
+      <li>Photos: <a href="#">View Gallery</a></li>
     </ul>
   </section>
 
+  <!-- Deployment Section -->
+  <section id="deployment">
+    <h2>Deployment</h2>
+    <p>Data was collected across various urban locations during rush hour. The device was powered by a 10,000mAh battery and uploaded readings via Wi-Fi (hotspot or public).</p>
+    <ul>
+      <li>Location: Dublin City, M50 Corridor</li>
+      <li>Dates: July 2025</li>
+      <li>Power runtime: ~6 hours continuous</li>
+      <li>Data synced every 30 seconds to ThingSpeak and Blynk</li>
+    </ul>
+    <p>GPS data and maps can be integrated in future work.</p>
+  </section>
+
   <footer>
-    <p>&copy; 2025 Lauren Dwyer | MEng ECE</p>
+    <p>&copy; 2025 Lauren Dwyer | MEng ECE | Final Year Thesis Project</p>
   </footer>
 
   <script>
