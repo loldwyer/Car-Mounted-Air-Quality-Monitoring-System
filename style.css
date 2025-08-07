@@ -79,11 +79,24 @@ header {
   flex-wrap: wrap;
 }
 
-.dcu-logo-left {
-  width: auto;/*80px;*/
+.logo-container {
   height: 100%;
-  object-fit: contain;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border-right: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 0;
+  margin: 0;
 }
+
+.dcu-logo-left {
+  height: 100%;
+  max-height: 120px; /* Prevent over-stretch */
+  width: auto;
+  object-fit: contain;
+  padding-left: 1rem;
+}
+
 
 .header-content {
   text-align: center;
