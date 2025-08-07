@@ -59,30 +59,36 @@ section {
   color: #fff;
 }
 
-
-/* ====== HEADER ====== */
-/* Header stays at top, nav below */
+/* ===== HEADER ===== */
 header {
   background: linear-gradient(90deg, #0a58ca, #1d77d3);
   color: white;
-  padding: 2rem 1rem 1rem; /* less bottom padding now */
+  padding: 3rem 1rem 2rem;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 header h1 {
-  font-size: 2rem;
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+header .tagline {
+  font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
-header p {
-  font-size: 1.1rem;
-  margin: 0;
-}
-
-.submeta {
-  font-size: 0.95rem;
-  color: #f0f0f0;
-  margin-top: 0.3rem;
+header .author {
+  font-size: 1rem;
+  color: #e2e6ea;
 }
 
 /* ====== SENSOR SECTION ====== */
