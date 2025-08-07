@@ -2,18 +2,49 @@ body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
+  background-color: #f4f6f9;
   color: #333;
 }
 
-h1, h2 {
+header {
+  background: linear-gradient(90deg, #0a58ca, #1d77d3);
+  color: white;
+  padding: 1rem 0;
   text-align: center;
-  margin-top: 1rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+header p {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+section {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 0;
   color: #0a58ca;
 }
 
-p {
+label {
   font-size: 1.1rem;
+}
+
+select {
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
 .tabs {
@@ -31,52 +62,18 @@ p {
   font-size: 1rem;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s;
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: 0.3s ease;
 }
 
-.tablink:hover,
+.tablink:hover {
+  background-color: #cce0ff;
+}
+
 .tablink.active {
   background-color: #0a58ca;
   color: white;
-}
-
-.tabcontent {
-  display: none;
-  padding: 1rem;
-  max-width: 900px;
-  margin: auto;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.tabcontent p {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-/* New layout for side-by-side sensor views */
-.tab-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.tab-box {
-  flex: 1 1 30%;
-  overflow: hidden;  /* removes internal scrollbars if iframe fits the content */
-  min-width: 300px;
-  max-height: 400px; 
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .tab-group {
@@ -84,27 +81,50 @@ p {
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.tab-box {
+  flex: 1 1 30%;
+  min-width: 300px;
+  max-height: 420px;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: 0.3s ease;
+}
+
+.tab-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.tab-box p {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 0.75rem;
 }
 
 iframe {
   width: 100%;
-  height: 400px; 
+  height: 325px;
   border: none;
-  border-radius: 6px;
-  overflow: hidden;
+  border-radius: 8px;
 }
 
-@media (max-width: 600px) {
-  .tablink {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-  }
-
-  .tabcontent p {
-    font-size: 1rem;
-  }
+footer {
+  text-align: center;
+  padding: 1rem;
+  background: #f0f0f0;
+  font-size: 0.9rem;
+  margin-top: 2rem;
+  color: #666;
 }
+
 @media (max-width: 768px) {
   .tab-box {
     flex: 1 1 100%;
