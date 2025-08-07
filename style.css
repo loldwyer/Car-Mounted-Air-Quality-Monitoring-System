@@ -60,12 +60,14 @@ section {
 }
 
 /* ===== HEADER ===== */
+/* ===== HEADER WITH DCU LOGO ===== */
 header {
-  background: linear-gradient(90deg, #0a58ca, #1d77d3);
-  color: white;
+  background: linear-gradient(135deg, #002663, #004080);
+  color: #f0f2f5;
   padding: 3rem 1rem 2rem;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-bottom: 5px solid #fdb913;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .header-content {
@@ -73,23 +75,25 @@ header {
   margin: 0 auto;
 }
 
-header h1 {
-  font-size: 2.4rem;
-  font-weight: 700;
+.dcu-logo {
+  width: 80px;
   margin-bottom: 1rem;
+}
+
+header h1 {
+  font-size: 2.3rem;
+  font-weight: 700;
   color: #ffffff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-header .tagline {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
+header .tagline,
 header .author {
-  font-size: 1rem;
-  color: #e2e6ea;
+  font-size: 1.1rem;
+  color: #e0e4ea;
+  margin: 0.4rem 0;
 }
+
 
 /* ====== SENSOR SECTION ====== */
 label {
