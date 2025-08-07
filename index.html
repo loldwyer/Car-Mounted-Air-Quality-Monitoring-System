@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Test Car-Mounted Air Quality Dashboard</title>
+  <title>Car-Mounted Air Quality Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  
+ 
 </head>
 <body>
   <header>
@@ -34,7 +34,7 @@
       <button class="tablink" onclick="showTab('no2', this)">NO₂</button>
     </div>
 
-    <div class="tab-row">
+    <div id="sensorTabs" class="tab-group">
       <div id="co2" class="tabcontent tab-box">
         <p><strong>Latest CO₂:</strong> <span id="co2val">Loading...</span> ppm</p>
         <iframe src="https://thingspeak.com/channels/2960675/charts/4?dynamic=true"></iframe>
@@ -99,10 +99,8 @@
     function showTab(id, el) {
       hideAllTabs();
       document.getElementById(id).style.display = 'block';
-
       document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
       if (el) el.classList.add('active');
-
       document.getElementById('sensorSelect').value = 'none';
     }
 
