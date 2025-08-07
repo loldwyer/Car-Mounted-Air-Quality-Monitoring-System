@@ -58,6 +58,26 @@ p {
   margin-bottom: 0.5rem;
 }
 
+/* New layout for side-by-side sensor views */
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.tab-box {
+  flex: 1 1 30%;
+  min-width: 300px;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+
 iframe {
   width: 100%;
   border: none;
