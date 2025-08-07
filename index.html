@@ -14,16 +14,14 @@
     <p>Live CO₂, PM, NO₂ readings from ESP32 + Blynk + ThingSpeak</p>
   </header>
 
-
-  <!-- Top Banner Navigation -->
   <nav class="topnav">
-    <ul>
-      <li><a href="#sensor-overview" class="active">Sensor Overview</a></li>
-      <li><a href="#hardware">Hardware</a></li>
-      <li><a href="#enclosure">Enclosure & Mounting</a></li>
-      <li><a href="#deployment">Deployment</a></li>
-    </ul>
-  </nav>
+  <ul>
+    <li><a href="#" onclick="showSection('sensor-overview')" class="navlink active">Sensor Overview</a></li>
+    <li><a href="#" onclick="showSection('hardware')" class="navlink">Hardware</a></li>
+    <li><a href="#" onclick="showSection('enclosure')" class="navlink">Enclosure & Mounting</a></li>
+    <li><a href="#" onclick="showSection('deployment')" class="navlink">Deployment</a></li>
+  </ul>
+</nav>
 
   <!-- Sensor Section -->
   <section id="sensor-overview">
@@ -179,7 +177,24 @@
       }
     }
 
+      function showSection(sectionId) {
+    // Hide all sections
+    const sections = document.querySelectorAll("section");
+    sections.forEach(sec => sec.style.display = "none");
+
+    // Show selected section
+    const target = document.getElementById(sectionId);
+    if (target) target.style.display = "block";
+
+    // Update active nav link
+    document.querySelectorAll(".navlink").forEach(link => link.classList.remove("active"));
+    const activeLink = [...document.querySelectorAll(".navlink")].find(l => l.textContent.includes(target.querySelector("h2")?.textContent.split(' ')[0]));
+    if (activeLink) activeLink.classList.add("active");
+  }
+
+
     document.addEventListener("DOMContentLoaded", () => {
+      showSection('sensor-overview');
       showTab('co2', document.querySelector(".tablink"));
       fetchThingSpeakData();
       setInterval(fetchThingSpeakData, 30000);
