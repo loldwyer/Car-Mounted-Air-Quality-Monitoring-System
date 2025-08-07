@@ -72,7 +72,7 @@ header {
 .header-layout {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   max-width: 1200px;
   margin: 0 auto;
   gap: 2rem;
@@ -90,14 +90,14 @@ header {
 }
 
 .dcu-logo-left {
-  height: 100px;
-  max-height: 120px; /* Prevent over-stretch */
+  height: 100%;            /* fill header height */
+  max-height: 160px;       /* adjust as needed to match header height */
   width: auto;
   object-fit: contain;
-  padding-left: 1rem;
-  border-radius: 8px;
+  margin: 0;               /* remove margin so it touches left */
+  padding: 0;              /* ensure tight fit */
+  align-self: stretch;     /* allow it to stretch within flexbox */
 }
-
 
 .header-content {
   text-align: center;
