@@ -101,3 +101,8 @@ iframe {
     font-size: 1rem;
   }
 }
+@media (max-width: 768px) {
+  .tab-box {
+    flex: 1 1 100%;
+  }
+}
