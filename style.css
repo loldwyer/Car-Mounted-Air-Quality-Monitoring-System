@@ -31,11 +31,13 @@ section {
 .topnav ul {
   display: flex;
   justify-content: center;
-  list-style: none;
+  align-items: center;
   margin: 0;
   padding: 0.75rem 0;
+  list-style: none; /* Fixes bullet points */
   background-color: #ffffff;
 }
+
 
 .topnav ul li {
   margin: 0 1rem;
@@ -46,16 +48,17 @@ section {
   color: #0a58ca;
   font-weight: 600;
   font-size: 1rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .topnav a:hover,
 .topnav a.active {
   background-color: #0a58ca;
-  color: white;
+  color: #fff;
 }
+
 
 /* ====== HEADER ====== */
 header {
