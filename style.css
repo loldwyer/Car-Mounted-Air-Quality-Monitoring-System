@@ -60,39 +60,50 @@ section {
 }
 
 /* ===== HEADER ===== */
-/* ===== HEADER WITH DCU LOGO ===== */
+/* ===== HEADER WITH LOGO LEFT ===== */
 header {
   background: linear-gradient(135deg, #002663, #004080);
   color: #f0f2f5;
-  padding: 3rem 1rem 2rem;
-  text-align: center;
+  padding: 2.5rem 1rem;
   border-bottom: 5px solid #fdb913;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.header-content {
-  max-width: 900px;
+.header-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1200px;
   margin: 0 auto;
+  gap: 2rem;
+  flex-wrap: wrap;
 }
 
-.dcu-logo {
-  width: 80px;
-  margin-bottom: 1rem;
+.dcu-logo-left {
+  width: 90px;
+  height: auto;
 }
 
-header h1 {
-  font-size: 2.3rem;
+.header-content {
+  text-align: center;
+  flex: 1;
+}
+
+.header-content h1 {
+  font-size: 2.2rem;
   font-weight: 700;
+  margin-bottom: 0.75rem;
   color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-header .tagline,
-header .author {
+.header-content .tagline,
+.header-content .author {
   font-size: 1.1rem;
-  color: #e0e4ea;
-  margin: 0.4rem 0;
+  color: #d8dce3;
+  margin: 0.3rem 0;
 }
+
 
 
 /* ====== SENSOR SECTION ====== */
@@ -216,3 +227,13 @@ footer {
   }
 }
 
+@media (max-width: 600px) {
+  .header-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dcu-logo-left {
+    margin-bottom: 1rem;
+  }
+}
