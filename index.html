@@ -162,7 +162,7 @@
   // If you host this page ON the ESP32 (recommended), leave empty for same‑origin.
   // If hosted elsewhere, set to http://ESP_IP and make sure ESP32 sends CORS headers.
   const ESP32_BASE    = ""; // e.g., "http://10.58.145.187"
-  const PUSH_PERIOD   = 60_000; // 60 seconds
+  const PUSH_PERIOD   = 80_000; // 60 seconds
 
   // Map your ESP32 JSON to ThingSpeak fields
   // Expected JSON from /sensors: { co2, pm1, pm25, pm10, humidity, temperature }
@@ -425,7 +425,7 @@
     showSection('sensor-overview');
     showTab('co2', document.querySelector(".tablink"));
     fetchThingSpeakData();
-    setInterval(fetchThingSpeakData, 60000);
+    setInterval(fetchThingSpeakData, 80000);
   });
 </script>
 </body>
