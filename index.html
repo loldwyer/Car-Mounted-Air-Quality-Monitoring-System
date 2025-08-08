@@ -263,36 +263,59 @@
     map.setView([lat, lon], Math.max(map.getZoom(), 14), { animate: true });
   }
 
-  function startLocation() {
-    const status = document.getElementById('locStatus');
-    if (!('geolocation' in navigator)) {
-      status.textContent = 'Geolocation not supported on this device.';
-      return;
-    }
-    status.textContent = 'Requesting permission…';
-    watchId = navigator.geolocation.watchPosition(
-      async pos => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        status.textContent = `Sharing: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)} m)`;
-        updateMap(latitude, longitude, accuracy);
-        // optional upload
-        postToThingSpeak(latitude, longitude);
-      },
-      err => {
-        status.textContent = `Location error: ${err.message}`;
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-    );
+    function startLocation() {
+  const status = document.getElementById('locStatus');
+  if (!('geolocation' in navigator)) {
+    status.textContent = 'Geolocation not supported on this device.';
+    return;
   }
+  status.textContent = 'Requesting permission…';
 
-  function stopLocation() {
-    const status = document.getElementById('locStatus');
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
-      watchId = null;
-      status.textContent = 'Location sharing stopped.';
-    }
+  watchId = navigator.geolocation.watchPosition(
+    async pos => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      status.textContent = `Sharing: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)} m)`;
+      updateMap(latitude, longitude, accuracy);
+
+      // Send to ThingSpeak (optional)
+      postToThingSpeak(latitude, longitude);
+
+      // Send to ESP32
+      fetch("http://10.58.145.187/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: latitude,
+          lon: longitude
+        })
+      })
+      .then(res => res.text())
+      .then(txt => console.log("ESP32 response:", txt))
+      .catch(err => console.error("Failed to send location:", err));
+    },
+    err => {
+      status.textContent = `Location error: ${err.message}`;
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+
+  
+function stopLocation() {
+  const status = document.getElementById('locStatus');
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    status.textContent = 'Location sharing stopped.';
+
+    // Tell ESP32 GPS is off
+    fetch("http://10.58.145.187/stopLocation", { method: "POST" })
+      .then(() => console.log("ESP32 notified of GPS stop"))
+      .catch(err => console.error("Failed to notify ESP32:", err));
   }
+}
+
 
 
 
