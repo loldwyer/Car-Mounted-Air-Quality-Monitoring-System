@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Car-Mounted Air Quality Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<style>
+  #loc-controls { display:flex; gap:.5rem; justify-content:center; margin:1rem 0; }
+  #map { width:100%; height:360px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+  .loc-status { text-align:center; font-size:.95rem; color:#555; }
+</style>
 </head>
 <body>
 
@@ -33,6 +50,16 @@
     <li><a href="#" onclick="showSection('deployment')" class="navlink">Deployment</a></li>
   </ul>
 </nav>
+  <section id="location">
+  <h2>My Live Location (opt‑in)</h2>
+  <div id="loc-controls">
+    <button onclick="startLocation()">Share my location</button>
+    <button onclick="stopLocation()">Stop sharing</button>
+  </div>
+  <p class="loc-status" id="locStatus">Location not shared.</p>
+  <div id="map"></div>
+</section>
+
 
   <!-- Sensor Section -->
   <section id="sensor-overview">
@@ -201,6 +228,71 @@
     const activeLink = [...document.querySelectorAll(".navlink")].find(l => l.textContent.includes(target.querySelector("h2")?.textContent.split(' ')[0]));
     if (activeLink) activeLink.classList.add("active");
   }
+
+
+    //NEW
+  // -------- Leaflet map setup --------
+  const map = L.map('map').setView([53.3498, -6.2603], 12); // default: Dublin
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+  let marker = null;
+  let watchId = null;
+
+  // -------- ThingSpeak (optional) --------
+  // WARNING: putting a write key in client-side code exposes it.
+  // Prefer a proxy function (Netlify/Vercel) to keep the key secret.
+  const TS_WRITE_KEY = ''; // <-- leave empty or set only if channel is private and you accept the risk
+  const TS_UPDATE_URL = 'https://api.thingspeak.com/update.json';
+
+  async function postToThingSpeak(lat, lon) {
+    if (!TS_WRITE_KEY) return; // skip if no key configured
+    const url = `${TS_UPDATE_URL}?api_key=${encodeURIComponent(TS_WRITE_KEY)}&field8=${lat.toFixed(6)},${lon.toFixed(6)}`;
+    try { await fetch(url, { method: 'GET' }); } catch (e) { console.warn('ThingSpeak location upload failed', e); }
+  }
+
+  // -------- Geolocation handlers --------
+  function updateMap(lat, lon, accuracy) {
+    if (!marker) {
+      marker = L.marker([lat, lon]).addTo(map);
+    } else {
+      marker.setLatLng([lat, lon]);
+    }
+    marker.bindPopup(`Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}<br>±${Math.round(accuracy)} m`);
+    map.setView([lat, lon], Math.max(map.getZoom(), 14), { animate: true });
+  }
+
+  function startLocation() {
+    const status = document.getElementById('locStatus');
+    if (!('geolocation' in navigator)) {
+      status.textContent = 'Geolocation not supported on this device.';
+      return;
+    }
+    status.textContent = 'Requesting permission…';
+    watchId = navigator.geolocation.watchPosition(
+      async pos => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        status.textContent = `Sharing: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)} m)`;
+        updateMap(latitude, longitude, accuracy);
+        // optional upload
+        postToThingSpeak(latitude, longitude);
+      },
+      err => {
+        status.textContent = `Location error: ${err.message}`;
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+  }
+
+  function stopLocation() {
+    const status = document.getElementById('locStatus');
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      status.textContent = 'Location sharing stopped.';
+    }
+  }
+
 
 
     document.addEventListener("DOMContentLoaded", () => {
