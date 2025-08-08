@@ -289,15 +289,7 @@
           lon: longitude
         })
       })
-      .then(res => res.text())
-      .then(txt => console.log("ESP32 response:", txt))
-      .catch(err => console.error("Failed to send location:", err));
-    },
-    err => {
-      status.textContent = `Location error: ${err.message}`;
-    },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-  );
+ 
 }
 
 
