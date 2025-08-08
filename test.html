@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<body>
+<button id="btn">Share my location</button>
+<pre id="out"></pre>
+<script>
+const WRITE_KEY = "9YXHS30JF6Z9YHXI";
+const CHANNEL_ID = "2960675";
+
+document.getElementById('btn').onclick = () => {
+  if (!navigator.geolocation) return alert("No geolocation");
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lon = pos.coords.longitude.toFixed(6);
+    // ThingSpeak accepts lat & long params with an update
+    const url = `https://api.thingspeak.com/update.json?api_key=${WRITE_KEY}&lat=${lat}&long=${lon}`;
+    const r = await fetch(url, {method:"POST"});
+    document.getElementById('out').textContent = await r.text();
+  }, err => alert(err.message), {enableHighAccuracy:true, timeout:10000});
+};
+</script>
+</body>
+</html>
