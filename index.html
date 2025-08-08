@@ -148,7 +148,7 @@
 
 <section id="deployment">
   <h2>Deployment</h2>
-  <p>Uploaded every 30 seconds to <a href="https://thingspeak.mathworks.com/channels/2960675" target="_blank">ThingSpeak</a>, Blynk, and microSD during July/August 2025 trials.</p>
+  <p>Uploaded every 60 seconds to <a href="https://thingspeak.mathworks.com/channels/2960675" target="_blank">ThingSpeak</a>, Blynk, and microSD during July/August 2025 trials.</p>
 </section>
 
 <footer>
@@ -162,7 +162,7 @@
   // If you host this page ON the ESP32 (recommended), leave empty for same‑origin.
   // If hosted elsewhere, set to http://ESP_IP and make sure ESP32 sends CORS headers.
   const ESP32_BASE    = ""; // e.g., "http://10.58.145.187"
-  const PUSH_PERIOD   = 30_000; // 30 seconds
+  const PUSH_PERIOD   = 60_000; // 60 seconds
 
   // Map your ESP32 JSON to ThingSpeak fields
   // Expected JSON from /sensors: { co2, pm1, pm25, pm10, humidity, temperature }
@@ -425,7 +425,7 @@
     showSection('sensor-overview');
     showTab('co2', document.querySelector(".tablink"));
     fetchThingSpeakData();
-    setInterval(fetchThingSpeakData, 30000);
+    setInterval(fetchThingSpeakData, 60000);
   });
 </script>
 </body>
