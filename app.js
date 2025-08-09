@@ -1,254 +1,281 @@
-/* Car-Mounted Air Quality Dashboard — app.js
- * - "Share my location" streams browser GPS to ESP32: POST /location
- * - Uses /ping for reachability + /debug to read back last lat/lon
- * - Leaflet map + simple tab/section helpers
- */
+/************ CONFIG ************/
+const TS_CHANNEL_ID = "2960675";
+const TS_WRITE_KEY  = "9YXHS30JF6Z9YHXI";
+const ESP32_BASE    = "";                 // e.g. "http://192.168.4.1"
+const PUSH_PERIOD   = 60_000;             // 60 s
 
-/* ====== CONFIG ====== */
-/**
- * Set your ESP32 base URL (printed on Serial as "ESP32 IP address").
- * You can also override at runtime with:
- *   - URL param: ?esp=http://10.58.45.187
- *   - or persisted in localStorage: localStorage.setItem('esp32_base', 'http://10.58.45.187')
- */
-const DEFAULT_ESP32_BASE = 'http://10.58.45.187';
+/************ STATE ************/
+let map, marker;
+let shareRunId = 0;           // increments every start/stop to invalidate old work
+let isSharing  = false;       // true only while the user opted in
+let tickTimer  = null;        // next scheduled tick
+let gpsWatchId = null;        // watchPosition id
+let currentAbort = null;      // AbortController for in-flight fetches
 
-function getESP32Base() {
-  const url = new URL(window.location.href);
-  const fromQuery = url.searchParams.get('esp');
-  if (fromQuery) {
-    localStorage.setItem('esp32_base', fromQuery);
-    return fromQuery.replace(/\/+$/, '');
-  }
-  const fromStorage = localStorage.getItem('esp32_base');
-  return (fromStorage || DEFAULT_ESP32_BASE).replace(/\/+$/, '');
-}
-let ESP32_BASE = getESP32Base();
-
-/* ====== DOM ====== */
+/************ UI HELPERS ************/
 const startBtn   = document.getElementById('startBtn');
 const stopBtn    = document.getElementById('stopBtn');
 const locStatus  = document.getElementById('locStatus');
-const mapEl      = document.getElementById('map');
+function setStatus(msg){ locStatus.textContent = msg; console.log("[share]", msg); }
 
-// Sensor value spans (if present)
-const co2Span  = document.getElementById('co2val');
-const pm25Span = document.getElementById('pm25val');
-const pm10Span = document.getElementById('pm10val');
-const pm1Span  = document.getElementById('pm1val');
-const tempSpan = document.getElementById('tempval');
-const humSpan  = document.getElementById('humval');
-const latDisp  = document.getElementById('latDisp');
-const lonDisp  = document.getElementById('lonDisp');
+/************ NAV / TABS ************/
+const tabGroups = { scd30: ['co2','temp','rh'], sps30: ['pm1','pm25','pm10'], mics:['gps'] };
 
-/* ====== SECTION NAV ====== */
-function showSection(id) {
-  document.querySelectorAll('section').forEach(sec => {
-    sec.style.display = (sec.id === id) ? 'block' : 'none';
-  });
-  // update topnav highlight
-  document.querySelectorAll('.topnav a.navlink').forEach(a => {
-    const isMe = a.getAttribute('onclick')?.includes(`'${id}'`);
-    a.classList.toggle('active', !!isMe);
-  });
+function showSection(sectionId) {
+  document.querySelectorAll("section").forEach(sec => sec.style.display = "none");
+  const target = document.getElementById(sectionId);
+  if (target) target.style.display = "block";
+  document.querySelectorAll(".navlink").forEach(link => link.classList.remove("active"));
+  const mapNames = { location:"Device Tracking", "sensor-overview":"Sensor Overview", hardware:"Hardware", enclosure:"Enclosure", deployment:"Deployment" };
+  const txt = mapNames[sectionId] || "";
+  [...document.querySelectorAll(".navlink")].forEach(l => { if (l.textContent.includes(txt)) l.classList.add("active"); });
+}
+
+function hideAllTabs(){ document.querySelectorAll('.tabcontent').forEach(el => el.style.display = 'none'); }
+function showTab(id, el){
+  hideAllTabs();
+  document.getElementById(id).style.display = 'block';
+  document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('sensorSelect').value = 'none';
+}
+function handleSensorSelect(sensor){
+  hideAllTabs();
+  if (sensor in tabGroups) {
+    tabGroups[sensor].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+    document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
+  }
 }
 window.showSection = showSection;
-
-/* ====== TABS ====== */
-function showTab(id, btnEl) {
-  document.querySelectorAll('.tabcontent').forEach(el => el.style.display = 'none');
-  const target = document.getElementById(id);
-  if (target) target.style.display = 'block';
-  document.querySelectorAll('.tablink').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-}
 window.showTab = showTab;
-
-/* Optional: filter group by sensor (you can extend as needed) */
-function handleSensorSelect(value) {
-  // Minimal UX: jump to a sensible tab for the chosen sensor
-  const map = {
-    scd30: 'co2',
-    sps30: 'pm25',
-    mics: 'gps' // or another tab if you later show NO2
-  };
-  const tabId = map[value];
-  if (tabId) {
-    const btn = document.querySelector(`.tablink[onclick*="${tabId}"]`);
-    showTab(tabId, btn);
-  }
-}
 window.handleSensorSelect = handleSensorSelect;
 
-/* ====== MAP ====== */
-let map, marker;
-(function initMap() {
-  if (!mapEl) return;
-  const defaultLatLng = [53.3498, -6.2603]; // Dublin default
-  map = L.map('map').setView(defaultLatLng, 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
-})();
+/************ MAP ************/
+function initMap() {
+  map = L.map('map').setView([53.3498, -6.2603], 12); // Dublin default
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+}
+function updateMap(lat, lon, accuracy) {
+  if (!map) return;
+  if (!marker) marker = L.marker([lat, lon]).addTo(map);
+  marker.setLatLng([lat, lon]);
+  marker.bindPopup(`Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}<br>±${Math.round(accuracy||0)} m`);
+  if (map.getZoom() < 14) map.setView([lat, lon], 14, { animate: true });
+}
 
-/* ====== HTTP HELPERS ====== */
-async function post(path, data) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 10000);
+/************ THINGSPEAK READ (for “Latest” labels) ************/
+async function fetchThingSpeakData() {
   try {
-    const res = await fetch(`${ESP32_BASE}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: data ? JSON.stringify(data) : '',
-      signal: controller.signal
-    });
-    clearTimeout(t);
-    return res;
+    const res = await fetch(`https://api.thingspeak.com/channels/${TS_CHANNEL_ID}/feeds.json?results=1`, { cache: "no-store" });
+    const data = await res.json();
+    if (!data || !data.feeds || !data.feeds.length) return;
+    const f = data.feeds[0];
+    const toNum = v => (v==null || v==="") ? NaN : parseFloat(v);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('co2val',  isNaN(toNum(f.field4)) ? "—" : toNum(f.field4).toFixed(1));
+    set('pm25val', isNaN(toNum(f.field2)) ? "—" : toNum(f.field2).toFixed(1));
+    set('pm10val', isNaN(toNum(f.field3)) ? "—" : toNum(f.field3).toFixed(1));
+    set('pm1val',  isNaN(toNum(f.field1)) ? "—" : toNum(f.field1).toFixed(1));
+    set('tempval', isNaN(toNum(f.field5)) ? "—" : toNum(f.field5).toFixed(1));
+    set('humval',  isNaN(toNum(f.field6)) ? "—" : toNum(f.field6).toFixed(1));
+    const latEl = document.getElementById('latDisp'); if (latEl) latEl.textContent = f.field7 ?? "—";
+    const lonEl = document.getElementById('lonDisp'); if (lonEl) lonEl.textContent = f.field8 ?? "—";
   } catch (e) {
-    clearTimeout(t);
-    throw e;
+    console.warn("ThingSpeak read failed:", e);
   }
 }
 
-async function getJSON(path) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 10000);
-  try {
-    const res = await fetch(`${ESP32_BASE}${path}`, { signal: controller.signal });
-    clearTimeout(t);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  } catch (e) {
-    clearTimeout(t);
-    throw e;
-  }
+/************ UTIL ************/
+function sameOriginUrl(path) {
+  if (!ESP32_BASE) return path.startsWith("/") ? path : `/${path}`;
+  return `${ESP32_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+}
+function isHttpsPage() { return location.protocol === "https:"; }
+function isHttpTarget(url) {
+  try { return new URL(url, location.href).protocol === "http:"; } catch { return false; }
 }
 
-/* ====== GEO / UPLOAD CONTROL ====== */
-let watchId = null;
+/************ SENSORS + GPS + UPLOAD ************/
+function mapReadingsToThingSpeak(r) {
+  return {
+    field1: r?.pm1,
+    field2: r?.pm25,
+    field3: r?.pm10,
+    field4: r?.co2,
+    field5: r?.temperature,
+    field6: r?.humidity
+    // field7/8 added from geolocation
+  };
+}
 
-async function startSharing() {
-  // Start geolocation stream
-  if (!navigator.geolocation) {
-    locStatus.textContent = 'Geolocation not supported by this browser.';
+async function getESP32Readings(signal) {
+  const url = sameOriginUrl("/sensors");
+  if (isHttpsPage() && isHttpTarget(url)) {
+    throw new Error("Blocked: page is HTTPS but ESP32 is HTTP. Host on ESP32 (HTTP) or use a HTTPS proxy.");
+  }
+  const res = await fetch(url, { cache: "no-store", signal });
+  if (!res.ok) throw new Error(`/sensors HTTP ${res.status}`);
+  return res.json();
+}
+
+function getBrowserLocationOnce() {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) return reject(new Error("Geolocation not supported"));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve(pos.coords),
+      err => reject(new Error(`GPS error: ${err.message || err.code}`)),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
+async function sendToThingSpeak(payload, signal) {
+  const params = new URLSearchParams({ api_key: TS_WRITE_KEY });
+  Object.entries(payload).forEach(([k,v]) => {
+    if (v !== undefined && v !== null && v !== "" && Number.isFinite(+v)) params.set(k, String(v));
+  });
+  const url = `https://api.thingspeak.com/update?${params.toString()}`;
+  const res = await fetch(url, { method: "GET", signal });
+  const text = (await res.text()).trim();
+  if (text === "0") throw new Error("ThingSpeak rejected update (rate limit or bad key/fields).");
+  return text; // entryId
+}
+
+/**
+ * Single upload cycle guarded by run id and abort signal.
+ */
+async function oneShotCycle(myRunId) {
+  // Bail early if the session is no longer active
+  if (!isSharing || myRunId !== shareRunId) return;
+
+  // New abort controller for *this* cycle
+  if (currentAbort) currentAbort.abort();
+  currentAbort = new AbortController();
+  const { signal } = currentAbort;
+
+  const ts = {};
+
+  // 1) Sensors (optional)
+  try {
+    const r = await getESP32Readings(signal);
+    Object.assign(ts, mapReadingsToThingSpeak(r));
+  } catch (e) {
+    setStatus(`⚠️ Sensor read skipped: ${e.message}`);
+  }
+
+  // 2) GPS (optional)
+  try {
+    const coords = await getBrowserLocationOnce();
+    ts.field7 = coords.latitude;
+    ts.field8 = coords.longitude;
+    updateMap(coords.latitude, coords.longitude, coords.accuracy);
+
+    // Optional: tell ESP32 location (best-effort)
+    const locUrl = sameOriginUrl("/location");
+    if (!(isHttpsPage() && isHttpTarget(locUrl))) {
+      fetch(locUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat: coords.latitude, lon: coords.longitude })
+      }).catch(()=>{});
+    }
+  } catch (e) {
+    setStatus(`⚠️ No GPS: ${e.message}`);
+  }
+
+  // If user stopped while we were working, do not send
+  if (!isSharing || myRunId !== shareRunId) return;
+
+  // 3) Make sure there's something to send
+  if (!("field7" in ts) && Object.keys(ts).length === 0) {
+    throw new Error("Nothing to send (no sensors and no GPS).");
+  }
+
+  // 4) Push to ThingSpeak
+  const entryId = await sendToThingSpeak(ts, signal);
+  return entryId;
+}
+
+/************ START/STOP ************/
+async function startLocation() {
+  if (isSharing) return;
+  isSharing = true;
+  shareRunId++;                 // new run id
+  const myRunId = shareRunId;   // capture
+  startBtn.disabled = true;
+  stopBtn.disabled  = false;
+
+  // Live map updates during sharing
+  if ('geolocation' in navigator && gpsWatchId === null) {
+    gpsWatchId = navigator.geolocation.watchPosition(
+      pos => updateMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+  }
+
+  setStatus("Starting… (first reading)");
+  try {
+    const entryId = await oneShotCycle(myRunId);
+    if (isSharing && myRunId === shareRunId) {
+      setStatus(`✅ Sent entry ${entryId}. Next in ${PUSH_PERIOD/1000}s.`);
+    }
+  } catch (e) {
+    setStatus(`❌ First send failed: ${e.message}`);
+    // Stop immediately on failure to avoid half-broken runs
+    stopLocation();
     return;
   }
 
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-  locStatus.textContent = 'Sharing location… ESP32 will upload every 60s while active.';
-
-  watchId = navigator.geolocation.watchPosition(async (pos) => {
-    const { latitude, longitude } = pos.coords;
-
-    // Update map + marker
-    if (map) {
-      if (!marker) {
-        marker = L.marker([latitude, longitude]).addTo(map);
-      } else {
-        marker.setLatLng([latitude, longitude]);
+  // Use a self-scheduling timeout to avoid overlapping cycles
+  const scheduleNext = () => {
+    if (!isSharing || myRunId !== shareRunId) return;
+    tickTimer = setTimeout(async () => {
+      try {
+        const entryId = await oneShotCycle(myRunId);
+        if (isSharing && myRunId === shareRunId) {
+          setStatus(`✅ Sent entry ${entryId} at ${new Date().toLocaleTimeString()}`);
+        }
+      } catch (e) {
+        if (isSharing && myRunId === shareRunId) {
+          setStatus(`⚠️ Send failed: ${e.message} — retrying in ${PUSH_PERIOD/1000}s`);
+        }
+      } finally {
+        scheduleNext();
       }
-      map.setView([latitude, longitude], map.getZoom());
-    }
-
-    // Update GPS readout (tab)
-    if (latDisp) latDisp.textContent = latitude.toFixed(6);
-    if (lonDisp) lonDisp.textContent = longitude.toFixed(6);
-
-    // Send to ESP32 (/location)
-    try {
-      await post('/location', { lat: latitude, lon: longitude });
-    } catch (e) {
-      console.warn('POST /location failed:', e);
-    }
-  }, (err) => {
-    console.warn('Geolocation error:', err);
-    locStatus.textContent = 'Unable to get location. Check browser permissions.';
-  }, {
-    enableHighAccuracy: true,
-    maximumAge: 5000,
-    timeout: 10000
-  });
+    }, PUSH_PERIOD);
+  };
+  scheduleNext();
 }
 
-async function stopSharing() {
-  // Stop browser GPS
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-  }
+function stopLocation() {
+  if (!isSharing) return;
+  isSharing = false;
+  shareRunId++;                 // invalidate any in-flight work
 
-  // Reset UI
-  locStatus.textContent = 'Location not shared.';
+  // Clear timers and live watch
+  if (tickTimer) { clearTimeout(tickTimer); tickTimer = null; }
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+
+  // Abort current fetches (sensor / ThingSpeak)
+  if (currentAbort) { try { currentAbort.abort(); } catch {} finally { currentAbort = null; } }
+
   startBtn.disabled = false;
-  stopBtn.disabled = true;
-
-  // Clear map marker but keep the map
-  if (marker) {
-    try { map.removeLayer(marker); } catch {}
-    marker = null;
-  }
-  if (latDisp) latDisp.textContent = '—';
-  if (lonDisp) lonDisp.textContent = '—';
+  stopBtn.disabled  = true;
+  setStatus("Location sharing stopped. No further uploads will occur.");
 }
 
-/* ====== SENSOR OVERVIEW NUMBERS ====== */
-async function refreshLatest() {
-  try {
-    const j = await getJSON('/debug'); // your ESP32 has this
-    if (latDisp && typeof j.lat === 'number') latDisp.textContent = j.lat.toFixed(6);
-    if (lonDisp && typeof j.lon === 'number') lonDisp.textContent = j.lon.toFixed(6);
-  } catch (_) {}
-}
+/************ WIRE BUTTONS ************/
+startBtn.addEventListener('click', startLocation);
+stopBtn .addEventListener('click', stopLocation);
 
-
-/* ====== TOAST (tiny helper) ====== */
-function toast(msg, ms = 3500) {
-  let el = document.getElementById('toast');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'toast';
-    el.style.position = 'fixed';
-    el.style.left = '50%';
-    el.style.bottom = '24px';
-    el.style.transform = 'translateX(-50%)';
-    el.style.padding = '10px 14px';
-    el.style.borderRadius = '10px';
-    el.style.background = 'rgba(0,0,0,0.8)';
-    el.style.color = '#fff';
-    el.style.font = '14px system-ui, sans-serif';
-    el.style.zIndex = '9999';
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.style.opacity = '1';
-  setTimeout(() => { el.style.opacity = '0'; }, ms);
-}
-
-/* ====== BOOTSTRAP ====== */
-function onReady() {
-  // Default section & tab
+/************ INIT ************/
+document.addEventListener("DOMContentLoaded", () => {
   showSection('sensor-overview');
-  const firstTabBtn = document.querySelector('.tablink');
-  if (firstTabBtn) firstTabBtn.click();
-
-  // Button hooks
-  if (startBtn) startBtn.addEventListener('click', startSharing);
-  if (stopBtn)  stopBtn.addEventListener('click',  stopSharing);
-
-  // Quick connectivity ping (optional)
-  getJSON('/ping')
-    .then(() => console.log(`ESP32 reachable at ${ESP32_BASE}`))
-    .catch(() => toast('ESP32 not reachable. Set correct IP via ?esp=http://x.x.x.x'));
-
-  // Periodic sensor refresh
-  refreshLatest();
-  setInterval(refreshLatest, 5000);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', onReady);
-} else {
-  onReady();
-}
+  const firstTabBtn = document.querySelector(".tablink");
+  if (firstTabBtn) showTab('co2', firstTabBtn);
+  initMap();
+  fetchThingSpeakData();
+  // Refresh “Latest” labels periodically (read-only; harmless)
+  setInterval(fetchThingSpeakData, 80_000);
+});
