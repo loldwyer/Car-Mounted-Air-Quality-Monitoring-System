@@ -14,7 +14,7 @@
  *   - URL param: ?esp=http://192.168.1.123
  *   - or persisted in localStorage: localStorage.setItem('esp32_base', 'http://192.168.1.123')
  */
-const DEFAULT_ESP32_BASE = 'http://192.168.1.123';
+const DEFAULT_ESP32_BASE = 'http://10.58.45.187';
 
 function getESP32Base() {
   const url = new URL(window.location.href);
