@@ -1,18 +1,15 @@
-/* =========================================================
- * Car-Mounted Air Quality Dashboard — app.js
- * - Hooks "Share my location" / "Stop sharing" to ESP32:
- *     POST /startUploads, /stopUploads, /location, /stopLocation
- * - Streams browser GPS to ESP32 while sharing is active
- * - Shows Leaflet map + latest sensor numbers from /sensors
- * - Exposes showSection/showTab/handleSensorSelect for HTML
- * ========================================================= */
+/* Car-Mounted Air Quality Dashboard — app.js
+ * - "Share my location" streams browser GPS to ESP32: POST /location
+ * - Uses /ping for reachability + /debug to read back last lat/lon
+ * - Leaflet map + simple tab/section helpers
+ */
 
 /* ====== CONFIG ====== */
 /**
  * Set your ESP32 base URL (printed on Serial as "ESP32 IP address").
  * You can also override at runtime with:
- *   - URL param: ?esp=http://192.168.1.123
- *   - or persisted in localStorage: localStorage.setItem('esp32_base', 'http://192.168.1.123')
+ *   - URL param: ?esp=http://10.58.45.187
+ *   - or persisted in localStorage: localStorage.setItem('esp32_base', 'http://10.58.45.187')
  */
 const DEFAULT_ESP32_BASE = 'http://10.58.45.187';
 
@@ -132,14 +129,6 @@ async function getJSON(path) {
 let watchId = null;
 
 async function startSharing() {
-  // Kick off uploads on the ESP32
-  try {
-    await post('/startUploads');
-  } catch (e) {
-    console.error('POST /startUploads failed:', e);
-    toast('Could not reach ESP32 (/startUploads). Check ESP32_BASE or Wi‑Fi.');
-  }
-
   // Start geolocation stream
   if (!navigator.geolocation) {
     locStatus.textContent = 'Geolocation not supported by this browser.';
@@ -190,10 +179,6 @@ async function stopSharing() {
     watchId = null;
   }
 
-  // Tell ESP32 to stop using GPS and stop ThingSpeak uploads
-  try { await post('/stopLocation'); } catch (e) { console.warn(e); }
-  try { await post('/stopUploads');  } catch (e) { console.warn(e); }
-
   // Reset UI
   locStatus.textContent = 'Location not shared.';
   startBtn.disabled = false;
@@ -211,17 +196,12 @@ async function stopSharing() {
 /* ====== SENSOR OVERVIEW NUMBERS ====== */
 async function refreshLatest() {
   try {
-    const j = await getJSON('/sensors');
-    if (j.co2        != null && co2Span)  co2Span.textContent  = Number(j.co2).toFixed(1);
-    if (j.pm25       != null && pm25Span) pm25Span.textContent = Number(j.pm25).toFixed(1);
-    if (j.pm10       != null && pm10Span) pm10Span.textContent = Number(j.pm10).toFixed(1);
-    if (j.pm1        != null && pm1Span)  pm1Span.textContent  = Number(j.pm1).toFixed(1);
-    if (j.temperature!= null && tempSpan) tempSpan.textContent = Number(j.temperature).toFixed(1);
-    if (j.humidity   != null && humSpan)  humSpan.textContent  = Number(j.humidity).toFixed(1);
-  } catch (e) {
-    // silent fail is fine; avoid console spam
-  }
+    const j = await getJSON('/debug'); // your ESP32 has this
+    if (latDisp && typeof j.lat === 'number') latDisp.textContent = j.lat.toFixed(6);
+    if (lonDisp && typeof j.lon === 'number') lonDisp.textContent = j.lon.toFixed(6);
+  } catch (_) {}
 }
+
 
 /* ====== TOAST (tiny helper) ====== */
 function toast(msg, ms = 3500) {
