@@ -125,6 +125,7 @@ async function sendLocationToESP() {
 }
 
 /************ START / STOP: this is where we call the new endpoints ************/
+/************ START / STOP ************/
 async function startUploads() {
   if (isSharing) return;
   isSharing = true;
@@ -134,16 +135,15 @@ async function startUploads() {
   startBtn.disabled = true;
   stopBtn.disabled  = false;
 
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // Tell the ESP32 firmware to START ThingSpeak uploads
-  try { await fetch(sameOriginUrl("/startUploads"), { method: "POST" }); } catch {}
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  try {
+    await fetch(sameOriginUrl("/startUploads"), { method: "POST" });
+  } catch (e) {
+    setStatus("Couldn’t reach device to start uploads.");
+  }
 
   setStatus("Starting… (first reading)");
-  // send first GPS immediately so the ESP has lat/lon before its first write
-  await sendLocationToESP();
+  await sendLocationToESP(); // seed ESP with lat/lon right away
 
-  // live map while sharing
   if ('geolocation' in navigator && gpsWatchId === null) {
     gpsWatchId = navigator.geolocation.watchPosition(
       pos => updateMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
@@ -152,7 +152,6 @@ async function startUploads() {
     );
   }
 
-  // schedule periodic GPS sends (ESP does the ThingSpeak write on its side)
   const scheduleNext = () => {
     if (!isSharing || myRun !== runId) return;
     tickTimer = setTimeout(async () => {
@@ -174,24 +173,53 @@ async function stopUploads() {
   startBtn.disabled = false;
   stopBtn.disabled  = true;
 
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // Tell the ESP32 firmware to STOP ThingSpeak uploads (and it clears GPS)
-  try { await fetch(sameOriginUrl("/stopUploads"), { method: "POST" }); } catch {}
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  try {
+    await fetch(sameOriginUrl("/stopUploads"),  { method: "POST" });
+    await fetch(sameOriginUrl("/stopLocation"), { method: "POST" }); // be explicit
+  } catch (e) {
+    // non-fatal; we’re already stopped locally
+  }
 
   setStatus("Location sharing stopped. No further uploads will occur.");
 }
 
-/************ WIRE BUTTONS ************/
-startBtn.addEventListener('click', startUploads);
-stopBtn .addEventListener('click', stopUploads);
-
 /************ INIT ************/
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   showSection('sensor-overview');
   const firstTabBtn = document.querySelector(".tablink");
   if (firstTabBtn) showTab('co2', firstTabBtn);
   initMap();
   fetchThingSpeakData();
-  setInterval(fetchThingSpeakData, READ_PERIOD); // read-only UI refresh
+  setInterval(fetchThingSpeakData, READ_PERIOD);
+
+  // OPTIONAL: sync button state with ESP if the page reloads mid‑run
+  try {
+    const r = await fetch(sameOriginUrl("/status"));
+    const s = await r.json(); // { uploadsEnabled: bool }
+    if (s.uploadsEnabled) {
+      // reflect running state without re-posting start
+      isSharing = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      setStatus("Sharing already active (restored).");
+      // resume watch + GPS tick loop
+      if ('geolocation' in navigator && gpsWatchId === null) {
+        gpsWatchId = navigator.geolocation.watchPosition(
+          pos => updateMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+          () => {},
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        );
+      }
+      // kick a send so ESP gets fresh lat/lon
+      await sendLocationToESP();
+      const scheduleNext = () => {
+        if (!isSharing) return;
+        tickTimer = setTimeout(async () => {
+          await sendLocationToESP();
+          scheduleNext();
+        }, PUSH_PERIOD);
+      };
+      scheduleNext();
+    }
+  } catch {}
 });
