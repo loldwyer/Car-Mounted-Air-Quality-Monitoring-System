@@ -20,6 +20,7 @@ section {
   margin: auto;
 }
 
+/* ===== NAV ===== */
 .topnav {
   background-color: #ffffff;
   border-bottom: 1px solid #ddd;
@@ -27,7 +28,6 @@ section {
   top: 0;
   z-index: 999;
 }
-
 .topnav ul {
   display: flex;
   justify-content: center;
@@ -37,12 +37,7 @@ section {
   list-style: none; /* Fixes bullet points */
   background-color: #ffffff;
 }
-
-
-.topnav ul li {
-  margin: 0 1rem;
-}
-
+.topnav ul li { margin: 0 1rem; }
 .topnav a {
   text-decoration: none;
   color: #0a58ca;
@@ -52,14 +47,12 @@ section {
   border-radius: 5px;
   transition: background-color 0.3s, color 0.3s;
 }
-
 .topnav a:hover,
 .topnav a.active {
   background-color: #0a58ca;
   color: #fff;
 }
 
-/* ===== HEADER ===== */
 /* ===== HEADER WITH LOGO LEFT ===== */
 header {
   background: linear-gradient(135deg, #002663, #004080);
@@ -68,7 +61,6 @@ header {
   border-bottom: 5px solid #fdb913;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
-
 .header-layout {
   display: flex;
   align-items: center;
@@ -78,32 +70,27 @@ header {
   gap: 2rem;
   flex-wrap: wrap;
 }
-
 .logo-container {
-  height: 100%;
   display: flex;
-  align-items: left;
+  align-items: flex-start; /* was 'left' (invalid) */
   background-color: transparent;
   border-right: 2px solid rgba(255, 255, 255, 0.2);
   padding: 0;
   margin: 0;
 }
-
 .dcu-logo-left {
-  height: 100%;            /* fill header height */
-  max-height: 160px;       /* adjust as needed to match header height */
+  height: 100%;
+  max-height: 160px;
   width: auto;
   object-fit: contain;
-  margin: 0;               /* remove margin so it touches left */
-  padding: 0;              /* ensure tight fit */
-  align-self: stretch;     /* allow it to stretch within flexbox */
+  margin: 0;
+  padding: 0;
+  align-self: stretch;
 }
-
 .header-content {
   text-align: center;
   flex: 1;
 }
-
 .header-content h1 {
   font-size: 2.2rem;
   font-weight: 700;
@@ -111,7 +98,6 @@ header {
   color: #ffffff;
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
-
 .header-content .tagline,
 .header-content .author {
   font-size: 1.1rem;
@@ -119,14 +105,11 @@ header {
   margin: 0.3rem 0;
 }
 
-
-
 /* ====== SENSOR SECTION ====== */
 label {
   font-size: 1.1rem;
   font-weight: 600;
 }
-
 select {
   font-size: 1rem;
   padding: 0.5rem;
@@ -143,7 +126,6 @@ select {
   gap: 0.5rem;
   margin: 1rem 0;
 }
-
 .tablink {
   background-color: #eee;
   border: none;
@@ -154,11 +136,7 @@ select {
   border-radius: 5px;
   transition: 0.3s;
 }
-
-.tablink:hover {
-  background-color: #cce0ff;
-}
-
+.tablink:hover { background-color: #cce0ff; }
 .tablink.active {
   background-color: #0a58ca;
   color: white;
@@ -173,15 +151,11 @@ select {
   justify-content: center;
   margin-top: 1rem;
 }
-
-.tabcontent {
-  display: none;
-}
-
+.tabcontent { display: none; }
 .tab-box {
   flex: 1 1 30%;
   min-width: 300px;
-  max-height: 430px;
+  /* allow content to size naturally; GPS tab needs more height */
   background: white;
   padding: 1rem;
   border-radius: 10px;
@@ -190,17 +164,18 @@ select {
   overflow: hidden;
   transition: transform 0.3s ease;
 }
-
 .tab-box:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
-
 .tab-box p {
   font-size: 1.2rem;
   font-weight: bold;
   margin-bottom: 0.75rem;
 }
+
+/* Let the GPS card expand and show a big map */
+#gps.tab-box { max-height: none; }
 
 /* ====== IFRAME ====== */
 iframe {
@@ -210,6 +185,25 @@ iframe {
   border-radius: 8px;
   overflow: hidden;
 }
+
+/* ====== MAP & GPS UI ====== */
+#map {
+  width: 100%;
+  height: 420px;         /* ensures visibility */
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+  background: #e9eef5;
+}
+.btn {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn.primary { background: #2563eb; color: #fff; }
+.status { font-size: 0.9rem; opacity: 0.85; margin-left: .5rem; }
 
 /* ====== FOOTER ====== */
 footer {
@@ -223,32 +217,16 @@ footer {
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
-  .tab-box {
-    flex: 1 1 100%;
-  }
-
-  .topnav ul {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .tablink {
-    font-size: 0.95rem;
-    padding: 8px 14px;
-  }
-
-  header h1 {
-    font-size: 1.5rem;
-  }
+  .tab-box { flex: 1 1 100%; }
+  .topnav ul { flex-direction: column; gap: 0.5rem; }
+  .tablink { font-size: 0.95rem; padding: 8px 14px; }
+  header h1 { font-size: 1.5rem; }
+  iframe { height: 300px; }
+  #map { height: 360px; }
 }
-
 @media (max-width: 600px) {
-  .header-layout {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .dcu-logo-left {
-    margin-bottom: 1rem;
-  }
+  .header-layout { flex-direction: column; align-items: center; }
+  .dcu-logo-left { margin-bottom: 1rem; }
+  iframe { height: 280px; }
+  #map { height: 320px; }
 }
