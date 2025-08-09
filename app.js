@@ -1,4 +1,4 @@
-/************ CONFIG ************/
+/************ CONFIG ************/ 
 const ESP32_BASE    = "";          // if hosting this page elsewhere, set to "http://<esp32-ip>"
 const TS_CHANNEL_ID = "2960675";   // for read-only UI updates
 const PUSH_PERIOD   = 60_000;      // GPS send cadence (matches ESP32 ThingSpeak cadence)
@@ -27,7 +27,7 @@ window.showSection = function showSection(sectionId){
   document.querySelectorAll(".navlink").forEach(link => link.classList.remove("active"));
   const mapNames = { location:"Device Tracking", "sensor-overview":"Sensor Overview", hardware:"Hardware", enclosure:"Enclosure", deployment:"Deployment" };
   const txt = mapNames[sectionId] || "";
-  [...document.querySelectorAll(".navlink")].forEach(l => { if (l.textContent.includes(txt)) l.classList.add('active'); });
+  [...document.querySelectorAll(".navlink")].forEach(l => { if (l.textContent.includes(txt)) l.classList.add("active"); });
 };
 
 window.showTab = function showTab(id, el){
@@ -56,14 +56,14 @@ function updateMap(lat, lon, accuracy) {
   if (!map) return;
   if (!marker) marker = L.marker([lat, lon]).addTo(map);
   marker.setLatLng([lat, lon]);
-  marker.bindPopup(`Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}<br>±${Math.round(accuracy||0)} m`);
+  marker.bindPopup(Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}<br>±${Math.round(accuracy||0)} m);
   if (map.getZoom() < 14) map.setView([lat, lon], 14, { animate: true });
 }
 
 /************ READ (UI labels only; safe anytime) ************/
 async function fetchThingSpeakData() {
   try {
-    const res = await fetch(`https://api.thingspeak.com/channels/${TS_CHANNEL_ID}/feeds.json?results=1`, { cache: "no-store" });
+    const res = await fetch(https://api.thingspeak.com/channels/${TS_CHANNEL_ID}/feeds.json?results=1, { cache: "no-store" });
     const data = await res.json();
     if (!data || !data.feeds || !data.feeds.length) return;
     const f = data.feeds[0];
@@ -84,8 +84,8 @@ async function fetchThingSpeakData() {
 
 /************ HELPERS ************/
 function sameOriginUrl(path) {
-  if (!ESP32_BASE) return path.startsWith("/") ? path : `/${path}`;
-  return `${ESP32_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  if (!ESP32_BASE) return path.startsWith("/") ? path : /${path};
+  return ${ESP32_BASE}${path.startsWith("/") ? path : /${path}};
 }
 function isHttpsPage() { return location.protocol === "https:"; }
 function isHttpTarget(url) {
@@ -98,7 +98,7 @@ function getBrowserLocationOnce() {
     if (!('geolocation' in navigator)) return reject(new Error("Geolocation not supported"));
     navigator.geolocation.getCurrentPosition(
       pos => resolve(pos.coords),
-      err => reject(new Error(`GPS error: ${err.message || err.code}`)),
+      err => reject(new Error(GPS error: ${err.message || err.code})),
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   });
@@ -118,15 +118,13 @@ async function sendLocationToESP() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lat: coords.latitude, lon: coords.longitude })
       });
-    } else {
-      setStatus("Blocked sending GPS (HTTPS page → HTTP ESP). Serve page from ESP or use HTTP during testing.");
     }
   } catch (e) {
-    setStatus(`⚠️ No GPS: ${e.message}`);
+    setStatus(⚠️ No GPS: ${e.message});
   }
 }
 
-/************ START / STOP: calls the ESP32 endpoints ************/
+/************ START / STOP: this is where we call the new endpoints ************/
 async function startUploads() {
   if (isSharing) return;
   isSharing = true;
@@ -136,17 +134,10 @@ async function startUploads() {
   startBtn.disabled = true;
   stopBtn.disabled  = false;
 
-  // Tell the ESP32 firmware to START ThingSpeak uploads (with mixed-content guard)
-  const startUrl = sameOriginUrl("/startUploads");
-  try {
-    if (!(isHttpsPage() && isHttpTarget(startUrl))) {
-      await fetch(startUrl, { method: "POST" });
-    } else {
-      setStatus("Blocked starting uploads (HTTPS page → HTTP ESP). Set ESP32_BASE to HTTPS or host the page on the ESP.");
-    }
-  } catch (e) {
-    setStatus("Couldn’t reach device to start uploads.");
-  }
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // Tell the ESP32 firmware to START ThingSpeak uploads
+  try { await fetch(sameOriginUrl("/startUploads"), { method: "POST" }); } catch {}
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   setStatus("Starting… (first reading)");
   // send first GPS immediately so the ESP has lat/lon before its first write
@@ -183,19 +174,10 @@ async function stopUploads() {
   startBtn.disabled = false;
   stopBtn.disabled  = true;
 
-  // Tell the ESP32 firmware to STOP ThingSpeak uploads (and stop using GPS)
-  const stopUrl = sameOriginUrl("/stopUploads");
-  const stopGpsUrl = sameOriginUrl("/stopLocation");
-  try {
-    if (!(isHttpsPage() && isHttpTarget(stopUrl))) {
-      await fetch(stopUrl, { method: "POST" });
-    }
-    if (!(isHttpsPage() && isHttpTarget(stopGpsUrl))) {
-      await fetch(stopGpsUrl, { method: "POST" });
-    }
-  } catch (e) {
-    // non-fatal; we’re already stopped locally
-  }
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // Tell the ESP32 firmware to STOP ThingSpeak uploads (and it clears GPS)
+  try { await fetch(sameOriginUrl("/stopUploads"), { method: "POST" }); } catch {}
+  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   setStatus("Location sharing stopped. No further uploads will occur.");
 }
@@ -212,4 +194,4 @@ document.addEventListener("DOMContentLoaded", () => {
   initMap();
   fetchThingSpeakData();
   setInterval(fetchThingSpeakData, READ_PERIOD); // read-only UI refresh
-});
+});  
